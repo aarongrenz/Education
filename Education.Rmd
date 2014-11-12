@@ -1,0 +1,120 @@
+---
+title: "Education"
+author: "Aaron Grenz & Marie Marshall"
+output: html_document
+---
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggmap)
+library(gridExtra)
+library(reshape2)
+library(tm)
+library(wordcloud)
+library(stringr)
+library(reshape2)
+library(scales)
+library(googleVis)
+library(datasets)
+```
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+##Load data tables into the global environment.
+
+tab1 = read.csv("C:/Users/Aaron Grenz/Documents/GitHub/Education/Tab 1.csv")
+tab2 = read.csv("C:/Users/Aaron Grenz/Documents/GitHub/Education/Tab 2.csv")
+tab3 = read.csv("C:/Users/Aaron Grenz/Documents/GitHub/Education/Tab 3.csv")
+
+```
+
+##Percentage of African Americans taking the Exam in American School System for 2013
+
+Arizona had the highest participation rate for African Americans in 2013.  West Virginia had the lowest participation rate for African Americans in 2013. Disclaimer: some states did not have enough data to produce meaningful results.
+
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+blackCleaned0 <- tab2 %>%
+  select(1,15) %>%
+  filter(Percent.of.Blacks.taking.exam!="0",Percent.of.Blacks.taking.exam!="*",State!="")
+
+ggplot(blackCleaned0,aes(x=reorder(State,-Percent.of.Blacks.taking.exam),y=Percent.of.Blacks.taking.exam)) + geom_bar(stat="identity") + ggtitle("Participation of African American Students") + theme(legend.position="none") + xlab("States") + ylab("% African American taking the test in 2013") + theme_bw() + theme(axis.text.x = element_text(angle=-90))
+
+```
+
+##Histogram of the Percentage of Blacks taking the Exam using GoogleVis
+
+This graph shows there is a higher frequency of schools in the 0 to 2% range.  Some schools in this range include Kansas, California, and Washington. Interestingly, Georgia, Arizona, and Maryland had the highest participation out of all the states.
+
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+blackCleaned1 <- tab2 %>%
+  select(1,14) %>%
+  filter(Percent.of.Blacks.Passed!="0",Percent.of.Blacks.Passed!="0.00",Percent.of.Blacks.Passed!="*",State!="")
+
+blackCleaned1$Percent.of.Blacks.Passed <- as.numeric(as.character(blackCleaned1$Percent.of.Blacks.Passed))
+
+blackState <- gvisHistogram(blackCleaned1, options=list(width=600, height=400, legend = "none", title="Histogram of % of Blacks Passed", titleTextStyle="{color:'red', fontName:'Courier', fontSize:16}"))
+
+plot(blackState)
+print(blackState,file="blackState.html")
+
+```
+<iframe src="blackState.html" width="600" height="600"></iframe>
+
+##US Intensity Charts with GoogleVis
+
+This GoogleVis chart shows the percentage of African Americans passing the exam.  The darker the color of a state, the higher the passing percentage.
+
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+blackExam <- gvisGeoChart(blackCleaned1, "State", "Percent.of.Blacks.Passed", options=list(region="US", displayMode="regions", resolution="provinces", width=600, height=400, colors="['#5C3292']"))
+
+plot(blackExam)
+print(blackExam,file="blackExam.html")
+
+```
+<iframe src="blackExam.html" width="600" height="600"></iframe>
+
+This GoogleVis chart shows the percentage of Hispanic passing the exam.  The darker the color of a state, the higher the passing percentage.
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+hispanicCleaned0 <- tab2 %>%
+  select(1,23) %>%
+  filter(Percent.of.Hispanic.Passed!="0",Percent.of.Hispanic.Passed!="0.00",Percent.of.Hispanic.Passed!="*",State!="")
+
+hispanicCleaned0$Percent.of.Hispanic.Passed <- as.numeric(as.character(hispanicCleaned0$Percent.of.Hispanic.Passed))
+
+hispanicExam <- gvisGeoChart(hispanicCleaned0, "State", "Percent.of.Hispanic.Passed", options=list(region="US", displayMode="regions", resolution="provinces", width=600, height=400, colors="['#871b47']"))
+
+plot(hispanicExam)
+print(hispanicExam,file="hispanicExam.html")
+
+```
+<iframe src="hispanicExam.html" width="600" height="600"></iframe>
+
+##Interesting Self-Created Graphs
+
+We completed a short comparison on the pass rates of students in Washington and Oregon.  Washington had a significantly higher passing rate compared to Oregon in 2013 for all students. Interestingly enough, the percentage of females who passed the exam only favored the Washington side by 0.05% in 2013.
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+##Washington vs. Oregon
+
+comp=tab2 %>%
+  filter(State %in% c("Washington","Oregon"))
+
+comp$Percent.Passed <- as.numeric(as.character(comp$Percent.Passed))
+comp$Percent.of.Females.Passed <- as.numeric(as.character(comp$Percent.of.Females.Passed))
+
+ggplot(comp,aes(x=State,y=Percent.Passed, fill=State)) + geom_bar(stat="identity") + ggtitle("") + theme(legend.position="none") + ggtitle("Pass Rates: Oregon vs. Washington") + xlab("States") + ylab("% Students Passed") + theme_bw() + theme(axis.text.x = element_text(angle=-90))
+
+ggplot(comp,aes(x=State,y=Percent.of.Females.Passed, fill=State)) + geom_bar(stat="identity") + ggtitle("") + theme(legend.position="none") + ggtitle("Female Pass Rates: Oregon vs. Washington") + xlab("States") + ylab("% Females Passed") + theme_bw() + theme(axis.text.x = element_text(angle=-90))
+
+```
+
